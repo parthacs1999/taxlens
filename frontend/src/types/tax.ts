@@ -25,3 +25,26 @@ export interface ReviewResponse {
     document: TaxDocument;
     findings: ValidationFinding[];
 }
+
+export type VisaStatus = "F-1" | "J-1" | "Other";
+export type IncomeStatus = "yes" | "no" | "unsure";
+export type StudentDocument = "W-2" | "1042-S" | "1099-INT";
+
+export interface StudentProfile {
+    visa_status: VisaStatus;
+    tax_year: number;
+    us_income: IncomeStatus;
+    documents: StudentDocument[];
+}
+
+export interface ChecklistItem {
+    title: string;
+    description: string;
+    status: "recommended" | "check_if_applicable";
+    source_url: string;
+}
+
+export interface StudentChecklistResponse {
+    items: ChecklistItem[];
+    disclaimer: string;
+}

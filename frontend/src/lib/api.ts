@@ -33,3 +33,30 @@ export async function reviewTaxDocument(
 
     return (await response.json()) as ReviewResponse;
 }
+
+
+import type {
+    StudentProfile,
+    StudentChecklistResponse,
+} from "@/types/tax";
+
+export async function generateStudentChecklist(
+    profile: StudentProfile
+): Promise<StudentChecklistResponse> {
+    const response = await fetch(
+        `${API_URL}/api/student-checklist`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(profile),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Unable to generate student checklist.");
+    }
+
+    return response.json();
+}

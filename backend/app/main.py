@@ -4,6 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.gemini_service import extract_tax_document, GeminiExtractionError
 from app.pdf_extractor import extract_pdf_text, PDFExtractionError
 from app.validators import normalize_fields, validate_document
+from app.student_checklist import (
+    StudentProfile,
+    StudentChecklistResponse,
+    generate_student_checklist,
+)
 
 app = FastAPI(
     title="TaxLens API", description="AI-powered tax document review", version="0.1.0"
@@ -70,3 +75,11 @@ async def review_document(file: UploadFile = File(...)):
         "document": tax_document.model_dump(),
         "findings": [finding.model_dump() for finding in findings],
     }
+
+
+@app.post(
+    "/api/student-checklist",
+    response_model=StudentChecklistResponse,
+)
+def student_checklist(profile: StudentProfile):
+    return generate_student_checklist(profile)
