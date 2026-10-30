@@ -1,4 +1,4 @@
-import type { ReviewResponse } from "@/types/tax";
+import type { ReviewResponse, ReconciliationResponse } from "@/types/tax";
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -56,6 +56,42 @@ export async function generateStudentChecklist(
 
     if (!response.ok) {
         throw new Error("Unable to generate student checklist.");
+    }
+
+    return response.json();
+}
+
+export async function reconcileTaxDocuments(
+    files: File[]
+): Promise<ReconciliationResponse> {
+    const formData = new FormData();
+
+    files.forEach((file) => {
+        formData.append("files", file);
+    });
+
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/reconcile`,
+        {
+            method: "POST",
+            body: formData,
+        }
+    );
+
+    if (!response.ok) {
+        let message = "Unable to reconcile documents.";
+
+        try {
+            const data = await response.json();
+
+            if (typeof data.detail === "string") {
+                message = data.detail;
+            }
+        } catch {
+            message = `Reconciliation failed (${response.status}).`;
+        }
+
+        throw new Error(message);
     }
 
     return response.json();

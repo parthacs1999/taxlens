@@ -2,14 +2,16 @@
 
 import { useRef, useState } from "react";
 import StudentTaxHub from "@/components/StudentTaxHub";
+import SmartReconciliation from "@/components/SmartReconciliation";
 import { reviewTaxDocument } from "@/lib/api";
 import type { ReviewResponse } from "@/types/tax";
 
-type Tab = "overview" | "documents" | "students";
+type Tab = "overview" | "documents" | "reconciliation" | "students";
 
 const navigation: { id: Tab; label: string; icon: string }[] = [
   { id: "overview", label: "Overview", icon: "◫" },
   { id: "documents", label: "Document Review", icon: "▤" },
+  { id: "reconciliation", label: "Smart Reconciliation", icon: "⇄" },
   { id: "students", label: "International Students", icon: "◇" },
 ];
 
@@ -160,10 +162,9 @@ export default function Home() {
   function downloadJSON() {
     if (!result) return;
 
-    const blob = new Blob(
-      [JSON.stringify(result, null, 2)],
-      { type: "application/json" }
-    );
+    const blob = new Blob([JSON.stringify(result, null, 2)], {
+      type: "application/json",
+    });
 
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -261,6 +262,8 @@ export default function Home() {
         <main className="mx-auto max-w-7xl space-y-8 px-6 py-9 lg:px-10">
           {tab === "students" ? (
             <StudentTaxHub />
+          ) : tab === "reconciliation" ? (
+            <SmartReconciliation />
           ) : (
             <>
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -558,30 +561,37 @@ export default function Home() {
                         AI-extracted fields requiring human verification
                       </p>
 
-                      <div className="mt-6 divide-y divide-slate-100">
-                        {result.document.fields.map((field, index) => (
-                          <div
-                            key={`${field.name}-${index}`}
-                            className="flex flex-wrap items-center justify-between gap-4 py-4"
-                          >
-                            <div>
-                              <p className="text-sm font-semibold text-slate-700">
-                                {formatLabel(field.name)}
-                              </p>
+                      {result.document.fields.length === 0 ? (
+                        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                          No supported tax fields were extracted from this
+                          document.
+                        </div>
+                      ) : (
+                        <div className="mt-6 divide-y divide-slate-100">
+                          {result.document.fields.map((field, index) => (
+                            <div
+                              key={`${field.name}-${index}`}
+                              className="flex flex-wrap items-center justify-between gap-4 py-4"
+                            >
+                              <div>
+                                <p className="text-sm font-semibold text-slate-700">
+                                  {formatLabel(field.name)}
+                                </p>
 
-                              <p className="mt-1 text-xs text-slate-400">
-                                Page {field.source_page ?? "unknown"}
-                              </p>
+                                <p className="mt-1 text-xs text-slate-400">
+                                  Page {field.source_page ?? "unknown"}
+                                </p>
+                              </div>
+
+                              <span className="rounded-lg bg-slate-50 px-3 py-2 font-mono text-sm text-slate-800">
+                                {field.name === "employee_ssn"
+                                  ? "•••-••-••••"
+                                  : field.value ?? "Not extracted"}
+                              </span>
                             </div>
-
-                            <span className="rounded-lg bg-slate-50 px-3 py-2 font-mono text-sm text-slate-800">
-                              {field.name === "employee_ssn"
-                                ? "•••-••-••••"
-                                : field.value ?? "Not extracted"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">

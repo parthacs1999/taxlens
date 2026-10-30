@@ -9,6 +9,8 @@ from app.student_checklist import (
     StudentChecklistResponse,
     generate_student_checklist,
 )
+from typing import Annotated
+from app.reconciliation import reconcile_documents
 
 app = FastAPI(
     title="TaxLens API", description="AI-powered tax document review", version="0.1.0"
@@ -83,3 +85,49 @@ async def review_document(file: UploadFile = File(...)):
 )
 def student_checklist(profile: StudentProfile):
     return generate_student_checklist(profile)
+
+
+@app.post("/api/reconcile")
+async def reconcile_tax_documents(
+    files: Annotated[list[UploadFile], File()],
+):
+    if len(files) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Upload at least two PDF documents.",
+        )
+
+    if len(files) > 5:
+        raise HTTPException(
+            status_code=400,
+            detail="You can reconcile a maximum of five documents.",
+        )
+
+    documents = []
+
+    for uploaded_file in files:
+        if not uploaded_file.filename:
+            raise HTTPException(
+                status_code=400,
+                detail="Each document must have a filename.",
+            )
+
+        if not uploaded_file.filename.lower().endswith(".pdf"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"{uploaded_file.filename} is not a PDF.",
+            )
+
+        result = await review_document(uploaded_file)
+
+        if hasattr(result, "model_dump"):
+            result = result.model_dump()
+
+        documents.append(
+            {
+                "filename": uploaded_file.filename,
+                "document": result["document"],
+            }
+        )
+
+    return reconcile_documents(documents)

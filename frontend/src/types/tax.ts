@@ -48,3 +48,25 @@ export interface StudentChecklistResponse {
     items: ChecklistItem[];
     disclaimer: string;
 }
+
+export interface ReconciliationEvidence {
+    document: string;
+    field: string;
+    value: string | null;
+    page: number | null;
+}
+
+export interface ReconciliationFinding {
+    code: string;
+    severity: "low" | "medium" | "high";
+    message: string;
+    evidence: ReconciliationEvidence[];
+    recommendation: string;
+}
+
+export interface ReconciliationResponse {
+    status: "review_complete" | "needs_review";
+    documents_analyzed: number;
+    findings_count: number;
+    findings: ReconciliationFinding[];
+}

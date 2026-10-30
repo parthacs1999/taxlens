@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaxLens
 
-## Getting Started
+TaxLens is an AI-powered tax document review tool I built to explore how LLMs can help automate document processing while keeping validation predictable and explainable.
 
-First, run the development server:
+The goal is to reduce the manual effort involved in reviewing tax documents and identifying inconsistencies across multiple forms.
+
+## Features
+
+- **Document Review:** Extracts structured information from W-2, 1099-INT, and 1042-S PDFs using Gemini.
+- **Smart Reconciliation:** Compares multiple documents to identify mismatched taxpayer names, tax years, and missing critical fields.
+- **Validation:** Uses rule-based checks to flag missing information and unsupported documents.
+- **International Student Hub:** Provides a basic document checklist based on student-provided information.
+- **Evidence:** Displays extracted values, source references, and recommended actions for flagged issues.
+
+## Tech Stack
+
+- **Frontend:** Next.js, TypeScript, Tailwind CSS
+- **Backend:** Python, FastAPI, Pydantic
+- **AI:** Google Gemini
+- **PDF Processing:** PyMuPDF
+- **Testing:** Pytest
+
+## Running Locally
+
+Clone the repository and start the backend:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env` file in the `backend` directory and add your Gemini API key:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+GEMINI_API_KEY=your_api_key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Start the API:
 
-## Learn More
+```bash
+uvicorn app.main:app --reload
+```
 
-To learn more about Next.js, take a look at the following resources:
+In another terminal, start the frontend:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open the application at `http://localhost:3000`.
 
-## Deploy on Vercel
+## Testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run the backend tests:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+cd backend
+python -m pytest tests/ -v
+```
+
+The current test suite contains 18 passing tests.
+
+The repository also includes synthetic PDF examples for testing successful extraction, missing fields, unsupported documents, and reconciliation mismatches.
+
+## Limitations
+
+TaxLens is a prototype, not a tax filing application. It currently supports text-based PDFs, and AI-extracted information requires human verification. Scanned documents are not supported without OCR.
+
+The application is intended for demonstration purposes using synthetic data only.
