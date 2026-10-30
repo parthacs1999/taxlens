@@ -3,4 +3,4 @@ __pycache__/
 .pytest_cache/
 .env
 node_modules/
-.next/
+.next/.DS_Store
