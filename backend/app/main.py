@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,9 +17,11 @@ app = FastAPI(
     title="TaxLens API", description="AI-powered tax document review", version="0.1.0"
 )
 
+frontend_url = os.getenv("FRONTEND_URL", "https://taxlens-eta.vercel.app").rstrip("/")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", frontend_url],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
