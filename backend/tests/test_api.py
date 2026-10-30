@@ -32,7 +32,12 @@ def test_valid_pdf():
     mock_document = TaxDocument(
         document_type="W-2",
         tax_year=2025,
-        fields={"employee_name": TaxField(value="John Doe", source_page=1)},
+        fields=[
+            TaxField(name="employee_name", value="John Doe", source_page=1),
+            TaxField(name="employer_name", value="Example Technologies", source_page=1),
+            TaxField(name="box_1_wages", value="52000.00", source_page=1),
+            TaxField(name="box_2_federal_tax_withheld", value="6200.00", source_page=1),
+        ],
     )
 
     with patch("app.main.extract_tax_document", return_value=mock_document):
@@ -41,11 +46,14 @@ def test_valid_pdf():
         )
 
     assert response.status_code == 200
-
     data = response.json()
-
     assert data["document"]["document_type"] == "W-2"
-    assert data["document"]["fields"]["employee_name"]["value"] == "John Doe"
+    fields = {field["name"]: field["value"] for field in data["document"]["fields"]}
+    assert fields["employee_name"] == "John Doe"
+    assert fields["box_1_wages"] == "52000.00"
+    assert fields["box_2_federal_tax_withheld"] == "6200.00"
+    assert data["status"] == "review_complete"
+    assert data["findings"] == []
 
 
 def test_invalid_pdf():

@@ -1,10 +1,20 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.cors import CORSMiddleware
 from app.gemini_service import extract_tax_document, GeminiExtractionError
 from app.pdf_extractor import extract_pdf_text, PDFExtractionError
+from app.validators import normalize_fields, validate_document
 
 app = FastAPI(
     title="TaxLens API", description="AI-powered tax document review", version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -45,6 +55,8 @@ async def review_document(file: UploadFile = File(...)):
 
     try:
         tax_document = await run_in_threadpool(extract_tax_document, result["pages"])
+        tax_document = normalize_fields(tax_document)
+        findings = validate_document(tax_document)
 
     except GeminiExtractionError as exc:
         raise HTTPException(
@@ -53,7 +65,8 @@ async def review_document(file: UploadFile = File(...)):
 
     return {
         "filename": file.filename,
-        "status": "extracted",
+        "status": ("needs_review" if findings else "review_complete"),
         "page_count": result["page_count"],
         "document": tax_document.model_dump(),
+        "findings": [finding.model_dump() for finding in findings],
     }
